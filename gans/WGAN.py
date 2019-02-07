@@ -3,9 +3,10 @@ from models.generative.ops import *
 from models.generative.utils import *
 from models.generative.loss import *
 from models.generative.optimizer import *
+from models.generative.gans.GAN import GAN
 
 
-class WGAN:
+class WGAN(GAN):
 	def __init__(self, 
 				data,                        			# Dataset class, training and test data.
 				z_dim,                       			# Latent space dimensions.
@@ -21,39 +22,15 @@ class WGAN:
 				model_name='WGAN'            			# Name to give to the model.
 				):
 
-		self.model_name = model_name
-
-		# Input data variables.
-		self.image_height = data.training.patch_h
-		self.image_width = data.training.patch_w
-		self.image_channels = data.training.n_channels
-		self.batch_size = data.training.batch_size
-
-		# Latent space dimensions.
-		self.z_dim = z_dim
-
-		# Loss function definition.
-		self.loss_type = loss_type
-
-		# Network details
-		self.use_bn = use_bn
-		self.alpha = alpha
-
-		# Training parameters
-		self.n_critic = n_critic
-		self.clipping = clipping
-		self.beta_1 = beta_1
+		# Training parameters, need to define beta_2 first since optimizer it's called from the constructor.
 		self.beta_2 = beta_2
-		self.learning_rate_g = learning_rate_g
-		self.learning_rate_d = learning_rate_d
-
-		self.build_model()
-
-
+		self.clipping = clipping
+		super().__init__(data=data, z_dim=z_dim, use_bn=use_bn, alpha=alpha, beta_1=beta_1, learning_rate_g=learning_rate_g, learning_rate_d=learning_rate_d, n_critic=n_critic, loss_type=loss_type, model_name=model_name)
+		
 	def discriminator(self, images, reuse):
 		with tf.variable_scope('discriminator', reuse=reuse):
+			
 			# Padding = 'Same' -> H_new = H_old // Stride
-
 			# Input Shape = (None, 56, 56, 3)
 
 			# Conv.
@@ -133,81 +110,9 @@ class WGAN:
 			output = tf.nn.sigmoid(x=logits, name='output')
 		return output
 
-
-	def model_inputs(self):
-		real_images = tf.placeholder(dtype=tf.float32, shape=(None, self.image_width, self.image_height, self.image_channels), name='real_images')
-		z_input = tf.placeholder(dtype=tf.float32, shape=(None, self.z_dim), name='z_input')
-		learning_rate_g = tf.placeholder(dtype=tf.float32, name='learning_rate_g')
-		learning_rate_d = tf.placeholder(dtype=tf.float32, name='learning_rate_d')
-		return real_images, z_input, learning_rate_g, learning_rate_d
-
-
-	def loss(self):
-		loss_dis, loss_gen = losses(self.loss_type, self.output_fake, self.output_real, self.logits_fake, self.logits_real)
-		return loss_dis, loss_gen
-
 	def optimization(self):
 		train_discriminator, train_generator = optimizer(self.beta_1, self.loss_gen, self.loss_dis, self.loss_type, self.learning_rate_input_g, self.learning_rate_input_d, beta_2=self.beta_2, clipping=self.clipping)
 		return train_discriminator, train_generator
-
-	def build_model(self):
-		# Inputs.
-		self.real_images, self.z_input, self.learning_rate_input_g, self.learning_rate_input_d = self.model_inputs()
-
-		# Neural Network Generator and Discriminator.
-		self.fake_images = self.generator(self.z_input, reuse=False, is_train=True)
-
-		self.output_fake, self.logits_fake = self.discriminator(images=self.fake_images, reuse=False) 
-		self.output_real, self.logits_real = self.discriminator(images=self.real_images, reuse=True)
-
-		# Losses.
-		self.loss_dis, self.loss_gen = self.loss()
-
-		# Optimizers.
-		self.train_discriminator, self.train_generator = self.optimization()
-
-		self.output_gen = self.generator(self.z_input, reuse=True, is_train=False)
-
-
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
-		run_epochs = 0    
-		losses = list()
-		saver = tf.train.Saver()
-
-		img_storage, latent_storage, checkpoints = setup_output(show_epochs, epochs, data, n_images, self.z_dim, data_out_path, self.model_name, restore, save_img)
-
-		with tf.Session() as session:
-		    session.run(tf.global_variables_initializer())
-		    for epoch in range(1, epochs+1):
-		        for batch_images, batch_labels in data.training:
-		            # Inputs.
-		            z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
-		            feed_dict = {self.z_input:z_batch, self.real_images:batch_images, self.learning_rate_input_g: self.learning_rate_g, self.learning_rate_input_d: self.learning_rate_d}
-
-		            # Update critic.
-		            session.run(self.train_discriminator, feed_dict=feed_dict)
-
-		            # Update generator after n_critic updates from discriminator.
-		            if run_epochs%self.n_critic :
-		            	session.run(self.train_generator, feed_dict=feed_dict)
-
-		            # Print losses and Generate samples.
-		            if run_epochs % print_epochs == 0:
-		                feed_dict = {self.z_input:z_batch, self.real_images:batch_images}
-		                epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
-		                losses.append((epoch_loss_dis, epoch_loss_gen))
-		                print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
-		            if run_epochs % show_epochs == 0:
-		                gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images)
-		                if save_img:
-			                img_storage[run_epochs//show_epochs] = gen_samples
-			                latent_storage[run_epochs//show_epochs] = sample_z
-		                saver.save(sess=session, save_path=checkpoints, global_step=run_epochs)
-
-		            run_epochs += 1
-		        data.training.reset()
-
-		return losses
 
 	
 

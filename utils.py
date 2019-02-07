@@ -83,7 +83,6 @@ def setup_output(show_epochs, epochs, data, n_images, z_dim, data_out_path, mode
 
     return img_storage, latent_storage, checkpoints
 
-
 # Run session to generate output samples.
 def show_generated(session, z_input, z_dim, output_fake, n_images, dim=20, show=True):
     sample_z = np.random.uniform(low=-1., high=1., size=(n_images, z_dim))
@@ -93,7 +92,13 @@ def show_generated(session, z_input, z_dim, output_fake, n_images, dim=20, show=
         plot_images(plt_num=n_images, images=gen_samples, dim=dim)    
     return gen_samples, sample_z
 
-
+# Method to report parameter in the run.
+def report_parameters(model, epochs, restore, data_out_path):
+    with open('%s/run_parameters.txt' % data_out_path, 'w') as f:
+        f.write('Epochs: %s\n' % (epochs))
+        f.write('Restore: %s\n' % (restore))
+        for attr, value in model.__dict__.items():
+            f.write('%s: %s\n' % (attr, value))
 
 
 
