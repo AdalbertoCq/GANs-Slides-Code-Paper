@@ -4,7 +4,7 @@ import numpy as np
 import os
 import shutil
 import h5py
-from sklearn.manifold import TSNE
+import tensorflow as tf
 
 # Simple function to plot number images.
 def plot_images(plt_num, images, dim, title=None, axis='off'):
@@ -101,4 +101,21 @@ def report_parameters(model, epochs, restore, data_out_path):
             f.write('%s: %s\n' % (attr, value))
 
 
+def power_iteration_method(filter_reshape, u, power_iterations):
+    u_norm = u
+    v_norm = None
+
+    for i in range(power_iterations):
+        v_iter = tf.matmul(u_norm, tf.transpose(filter_reshape))
+        v_norm = tf.math.l2_normalize(x=v_iter, epsilon=1e-12)
+        u_iter = tf.matmul(v_norm, filter_reshape)
+        u_norm = tf.math.l2_normalize(x=u_iter, epsilon=1e-12)
+
+    # How do I verify this?
+    u_norm = tf.stop_gradient(u_norm)
+    v_norm = tf.stop_gradient(v_norm)
+
+    singular_w = tf.matmul(tf.matmul(v_norm, filter_reshape), tf.transpose(u_norm))
+
+    return u_norm, singular_w
 
