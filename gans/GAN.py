@@ -144,6 +144,7 @@ class GAN:
 				saver.restore(session, check)
 				print('Restored model: %s' % check)
 			for epoch in range(1, epochs+1):
+				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
 					# Inputs.
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))               
@@ -161,14 +162,13 @@ class GAN:
 						epoch_loss_dis, epoch_loss_gen = session.run([self.loss_dis, self.loss_gen], feed_dict=feed_dict)
 						losses.append((epoch_loss_dis, epoch_loss_gen))
 						print('Epochs %s/%s: Generator Loss: %s. Discriminator Loss: %s' % (epoch, epochs, np.round(epoch_loss_gen, 4), np.round(epoch_loss_dis, 4)))
-					if run_epochs % show_epochs == 0:
+					if show_epochs is not None and run_epochs % show_epochs == 0:
 						gen_samples, sample_z = show_generated(session=session, z_input=self.z_input, z_dim=self.z_dim, output_fake=self.output_gen, n_images=n_images)
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-						saver.save(sess=session, save_path=checkpoints, global_step=run_epochs)
-
 					run_epochs += 1
+					
 				data.training.reset()
 		save_loss(losses, data_out_path, dim=30)
 

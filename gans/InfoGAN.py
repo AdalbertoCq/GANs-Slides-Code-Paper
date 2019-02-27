@@ -147,7 +147,7 @@ class InfoGAN(GAN):
 		self.output_gen = self.generator(self.z_input, self.c_input, reuse=True, is_train=False)
 
 
-	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_checkpoint=100, save_img=False):
+	def train(self, epochs, data_out_path, data, restore, show_epochs=100, print_epochs=10, n_images=10, save_img=False):
 		run_epochs = 0    
 		losses = list()
 		saver = tf.train.Saver()
@@ -162,6 +162,7 @@ class InfoGAN(GAN):
 				saver.restore(session, check)
 				print('Restored model: %s' % check)
 			for epoch in range(1, epochs+1):
+				saver.save(sess=session, save_path=checkpoints)
 				for batch_images, batch_labels in data.training:
 					# Inputs.
 					z_batch = np.random.uniform(low=-1., high=1., size=(self.batch_size, self.z_dim))
@@ -188,8 +189,6 @@ class InfoGAN(GAN):
 						if save_img:
 							img_storage[run_epochs//show_epochs] = gen_samples
 							latent_storage[run_epochs//show_epochs] = sample_z
-					if run_epochs % save_checkpoint == 0:
-						saver.save(sess=session, save_path=checkpoints)
 
 					run_epochs += 1
 				data.training.reset()
