@@ -1,14 +1,11 @@
 import tensorflow as tf
 # from models.generative.utils import power_iteration_method
 
-def leakyReLU(x, alpha):
-    return tf.maximum(alpha*x, x)
-
 # This step need to be heavily revised.
-def attention_block(x, i, spectral=True, power_iterations=1):
+def attention_block(x, scope, spectral=True, power_iterations=1):
 
     batch_size, height, width, channels = x.get_shape().as_list()
-    with tf.variable_scope('attention_block_%s' % i):
+    with tf.variable_scope('attention_block_%s' % scope):
 
         # Global value for all pixels, measures how important is the context for each of them.
         gamma = tf.get_variable('gamma', shape=(1),initializer=tf.constant_initializer(0.0))
@@ -27,10 +24,12 @@ def attention_block(x, i, spectral=True, power_iterations=1):
 
         beta = tf.nn.softmax(s)
 
-        print(beta)
-        print(x.shape)
-        print(beta.shape)
-        print(h_flat.shape)
+        display = True
+        if display:
+            print('Beta', beta)
+            print('X', x.shape)
+            print('Beta', beta.shape)
+            print('H Flat', h_flat.shape)
         o = tf.matmul(beta, h_flat)
         o = tf.reshape(o, shape=tf.stack([tf.shape(x)[0], height, width, channels]))
         y = gamma*o + x
@@ -263,22 +262,30 @@ def dense(inputs, out_dim, scope, use_bias=True, spectral=False, power_iteration
     return output
 
 
-def residual_block(inputs, filter_size, stride, padding, scope, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, power_iterations=1):
+def residual_block(inputs, filter_size, stride, padding, scope, c_input=None, is_training=True, normalization=None, use_bias=True, spectral=False, activation=None, power_iterations=1):
     channels = inputs.shape.as_list()[-1]
     with tf.variable_scope('resblock_%s' % scope):
         with tf.variable_scope('part_1'):
             # Convolutional
             net = convolutional(inputs, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
-            # Batch Normalization
-            if normalization is not None: net = normalization(inputs=net, training=is_training)
+            # Normalization
+            if normalization is not None: 
+                if c_input is not None:
+                    net = normalization(inputs=net, training=is_training, c=c_input, spectral=spectral)
+                else:
+                    net = normalization(inputs=net, training=is_training)
             # Activation
             if activation is not None: net = activation(net)
             
         with tf.variable_scope('part_2'):
             # Convolutional
             net = convolutional(net, channels, filter_size, stride, padding, 'convolutional', scope=1, spectral=spectral, power_iterations=power_iterations)
-            # Batch Normalization
-            if normalization is not None: net = normalization(inputs=net, training=is_training)
+            # Normalization
+            if normalization is not None: 
+                if c_input is not None:
+                    net = normalization(inputs=net, training=is_training, c=c_input, spectral=spectral)
+                else:
+                    net = normalization(inputs=net, training=is_training)
             # Activation
             if activation is not None: net = activation(net)
             
