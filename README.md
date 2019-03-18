@@ -17,3 +17,4 @@ This is a repository papers and code on different GAN models.
 
 * __Spectral Normalization GAN__: 'Spectral Normalization for Generative Adversarial Networks' Takeru Miyato, Toshiki Kataoka, Masanori Koyama, Yuichi Yoshida. 2018. [OpenReview](https://openreview.net/forum?id=B1QRgziT-). [[Code]](https://github.com/AdalbertoCq/GANs/blob/master/gans/SNGAN.py).
 
+* __Self Attention GAN__: 'Self-Attention Generative Adversarial Networks' Han Zhang, Ian Goodfellow, Dimitris Metaxas, Augustus Odena. 2018. [[Arxiv]](https://arxiv.org/abs/1805.08318) [[Code]](https://github.com/AdalbertoCq/GANs/blob/master/gans/SAGAN.py)
