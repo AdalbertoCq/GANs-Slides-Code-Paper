@@ -18,6 +18,15 @@ This [[slides]](https://github.com/AdalbertoCq/GANs/blob/master/slides/GANs_Slid
   * SAGAN.
   * BigGAN.
 
+The plan is to include in the future other models and relevant papers:
+ * InfoGAN
+ * Unrolled GANs
+ * RSGAN/RASGAN
+ * Two Time-Scale Update Rule
+ * StyleGAN
+ * CycleGAN
+ * Is Generator Conditioning Causally Related to GAN Performance?
+
 __Papers__:
 
 * __Original GAN__: 'Generative Adversarial Networks' Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio. 2014. [[Arxiv]](https://arxiv.org/pdf/1406.2661.pdf).
