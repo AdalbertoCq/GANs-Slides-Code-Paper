@@ -1,5 +1,24 @@
 # GANs
-This is a repository papers and code on different GAN models.
+Repository papers and code on different GAN models.
+
+This [[slides]](https://github.com/AdalbertoCq/GANs/blob/master/slides/GANs_Slides.pdf) are tutorial introduction for GANs covering the following topics:
+* __GANs__:
+  * Model.
+  * Zero-Sum Game and Nash Equilibrium.
+  * Optimal Point.
+  * Maximum Likelihood Models vs GANs.
+  * GAN Problems.
+  * Evaluation.
+* __Models__:
+  * DCGAN.
+  * WGAN/WGAN-GP.
+  * SNGAN.
+  * ProGAN.
+  * Conditional GANs.
+  * SAGAN.
+  * BigGAN.
+
+__Papers__:
 
 * __Original GAN__: 'Generative Adversarial Networks' Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio. 2014. [[Arxiv]](https://arxiv.org/pdf/1406.2661.pdf).
 
