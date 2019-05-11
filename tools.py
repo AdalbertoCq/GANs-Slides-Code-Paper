@@ -1,4 +1,3 @@
-from data_manipulation.utils import write_sprite_image
 from tensorflow.contrib.tensorboard.plugins import projector
 from models.generative.utils import *
 
@@ -17,9 +16,9 @@ def generate_samples(model, n_images, data_out_path, name='geneated_samples.png'
 	images_path = os.path.join(data_out_path, 'images')
 
 	# Dump images into sprite.
-	image_sprite = write_sprite_image(filename=os.path.join(images_path, name), data=gen_samples, metadata=False)
+	# image_sprite = write_sprite_image(filename=os.path.join(images_path, name), data=gen_samples, metadata=False)
 
-	return gen_samples, sample_z, image_sprite
+	return gen_samples, sample_z
 
 # Method to generate random samples from a model, it also dumps a sprite image width them.
 def generate_from_latent(model, latent_vector, data_out_path):
